@@ -11,7 +11,7 @@ import { createSpace, getSpaces } from '../api/apiFuncitons';
 
 export function DashboardPage() {
   const [spaces, setSpaces] = useState<Space[]>([]);
-  const [recents, setRecents] = useState<ContentItem[]>([]);
+  const [recents] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [showNewSpaceModal, setShowNewSpaceModal] = useState(false);
   const [spaceTitle, setSpaceTitle] = useState('');

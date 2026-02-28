@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { Plus, BookMarked, Zap, Music, FileText, HelpCircle, Send, Bot } from 'lucide-react';
+import { BookMarked, Zap, Music, FileText, HelpCircle, Send, Bot } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { ContentItem, Chapter, Transcript } from '../lib/types';
@@ -13,7 +13,7 @@ export function ContentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const [content, setContent] = useState<ContentItem | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chapters] = useState<Chapter[]>([]);
   const [showTimeStamps, setShowTimeStamps] = useState(true);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
@@ -251,7 +251,7 @@ export function ContentDetailPage() {
                     }`}
                 >
                   {showTimeStamps ? 'Hide Timestamps' : 'Show Timestamps'}
-                </button> 
+                </button>
               </div>
 
               {activeTab === 'transcripts' && (

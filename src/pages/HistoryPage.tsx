@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ArrowRight } from 'lucide-react';
 import type { ContentItem, HistoryItem } from '../lib/types';
 import { MainLayout } from '../components/MainLayout';
 import { formatDate } from '../lib/utils';
 // import { getHistory, deleteHistoryItem, clearHistory } from '../api/apiFuncitons';
-import { useAuth } from '../contexts/AuthContext';
+// import { useAuth } from '../contexts/AuthContext';
 
 export function HistoryPage() {
-  const [history, setHistory] = useState<(HistoryItem & { content: ContentItem })[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const [history] = useState<(HistoryItem & { content: ContentItem })[]>([]);
+  const [loading] = useState(true);
+  // const { user } = useAuth();
 
   // useEffect(() => {
   //   if (user) {
@@ -19,8 +19,8 @@ export function HistoryPage() {
   // }, [user]);
 
   // const loadHistory = async () => {
-    // if (!user) return;
-    // setLoading(true);
+  // if (!user) return;
+  // setLoading(true);
 
   //   try {
   //     const data = await getHistory();
@@ -87,7 +87,7 @@ export function HistoryPage() {
                     className="w-24 h-14 rounded object-cover flex-shrink-0"
                   />
                 ) : ( */}
-                  <div className="w-24 h-14 rounded bg-gray-800 flex-shrink-0" />
+                <div className="w-24 h-14 rounded bg-gray-800 flex-shrink-0" />
                 {/* // )} */}
 
                 <div className="flex-1 min-w-0">
