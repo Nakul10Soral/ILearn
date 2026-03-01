@@ -14,7 +14,7 @@ export function ContentDetailPage() {
   const { user } = useAuth();
   const [content, setContent] = useState<ContentItem | null>(null);
   const [chapters] = useState<Chapter[]>([]);
-  const [showTimeStamps, setShowTimeStamps] = useState(true);
+  const [showTimeStamps] = useState(true);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
   const [loading, setLoading] = useState(true);
