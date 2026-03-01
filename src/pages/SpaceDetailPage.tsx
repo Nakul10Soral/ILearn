@@ -16,6 +16,8 @@ export function SpaceDetailPage() {
   const [videoUrl, setVideoUrl] = useState('');
   const [contentTitle, setContentTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [vttDriveUrl, setVttDriveUrl] = useState('');
+  const [vttType, setVttType] = useState<'file' | 'drive'>('drive');
   const [isDragging, setIsDragging] = useState(false);
   const [adding, setAdding] = useState(false);
   const { user } = useAuth();
@@ -80,16 +82,20 @@ export function SpaceDetailPage() {
 
     try {
       let vttContent = null;
+      if (vttType === 'file') {
 
-      if (selectedFile) {
-        vttContent = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
+        if (selectedFile) {
+          vttContent = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
 
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = () => reject("Failed to read file");
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject("Failed to read file");
 
-          reader.readAsText(selectedFile);
-        });
+            reader.readAsText(selectedFile);
+          });
+        }
+      } else {
+        vttContent = vttDriveUrl;
       }
 
       const response = await createLecture({
@@ -153,13 +159,6 @@ export function SpaceDetailPage() {
             <Plus size={20} />
             Add content
           </button>
-          {/* <button
-            onClick={() => setShowAddContent(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition"
-          >
-            <Plus size={20} />
-            Add Bulk content
-          </button> */}
         </div>
 
         {contents.length > 0 ? (
@@ -181,7 +180,7 @@ export function SpaceDetailPage() {
       </div>
 
       {showAddContent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Add content to {space.name}
@@ -218,65 +217,104 @@ export function SpaceDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                    <FileText size={16} />
-                    VTT File <span className="text-xs text-gray-500 dark:text-gray-400">optional</span>
-                  </label>
+                  <div className='flex justify-between mb-2'>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                      <FileText size={16} />
+                      VTT File <span className="text-xs text-gray-500 dark:text-gray-400">{vttType === 'drive' ? '(Google Drive public link only)' : '(optional)'}</span>
+                    </label>
 
-                  {!selectedFile ? (
-                    <div
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 flex flex-col items-center justify-center gap-2 cursor-pointer ${isDragging
-                        ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500/50'
-                        }`}
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                    >
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept=".vtt"
-                        onChange={handleFileSelect}
-                        className="hidden"
-                      />
-                      <div className={`p-3 rounded-full ${isDragging ? 'bg-indigo-100 dark:bg-indigo-900' : 'bg-gray-100 dark:bg-gray-800'} transition-colors`}>
-                        <Upload size={24} className={isDragging ? 'text-indigo-600' : 'text-gray-500'} />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          Click or drag VTT file here
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          Only .vtt files are supported
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600">
-                          <FileText size={20} />
-                        </div>
-                        <div className="overflow-hidden">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {selectedFile.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {(selectedFile.size / 1024).toFixed(1)} KB
-                          </p>
-                        </div>
-                      </div>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => setSelectedFile(null)}
-                        className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-full text-gray-500 hover:text-indigo-600 transition-colors"
+                        onClick={() => setVttType('drive')}
+                        className={`px-4 text-xm rounded-lg border ${vttType === 'drive' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500/50'
+                          }`}
                       >
-                        <X size={18} />
+                        link
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVttType('file')}
+                        className={`px-4 py-2 rounded-lg border ${vttType === 'file' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30' : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500/50'
+                          }`}
+                      >
+                        File
                       </button>
                     </div>
-                  )}
+                  </div>
+
+                  <div>
+                    {
+                      vttType === "drive" ? (
+                        <div>
+                          <input
+                            type="url"
+                            value={vttDriveUrl}
+                            onChange={(e) => setVttDriveUrl(e.target.value)}
+                            placeholder="e.g., https://drive.google.com/file/d/..."
+                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          {!selectedFile ? (
+                            <div
+                              onDragOver={handleDragOver}
+                              onDragLeave={handleDragLeave}
+                              onDrop={handleDrop}
+                              className={`relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 flex flex-col items-center justify-center gap-2 cursor-pointer ${isDragging
+                                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30'
+                                : 'border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500/50'
+                                }`}
+                              onClick={() => document.getElementById('file-upload')?.click()}
+                            >
+                              <input
+                                id="file-upload"
+                                type="file"
+                                accept=".vtt"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                              />
+                              <div className={`p-3 rounded-full ${isDragging ? 'bg-indigo-100 dark:bg-indigo-900' : 'bg-gray-100 dark:bg-gray-800'} transition-colors`}>
+                                <Upload size={24} className={isDragging ? 'text-indigo-600' : 'text-gray-500'} />
+                              </div>
+                              <div className="text-center">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  Click or drag VTT file here
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Only .vtt files are supported
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-between p-3 rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-950/20">
+                              <div className="flex items-center gap-3 overflow-hidden">
+                                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900 text-indigo-600">
+                                  <FileText size={20} />
+                                </div>
+                                <div className="overflow-hidden">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {selectedFile.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {(selectedFile.size / 1024).toFixed(1)} KB
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedFile(null)}
+                                className="p-1 hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-full text-gray-500 hover:text-indigo-600 transition-colors"
+                              >
+                                <X size={18} />
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )
+                    }
+                  </div>
                 </div>
               </div>
 

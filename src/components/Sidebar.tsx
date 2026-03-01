@@ -10,13 +10,20 @@ import {
   LogOut,
   Moon,
   Sun,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 
-export function Sidebar() {
+type SidebarProps = {
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+};
+
+export function Sidebar({ collapsed, onToggleCollapse }: SidebarProps) {
   const { theme, toggleTheme } = useTheme();
-  const [isOpen, setIsOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -33,108 +40,127 @@ export function Sidebar() {
     }
   };
 
+  const navItems = [
+    { to: '/', icon: <Plus size={20} />, label: 'Add content' },
+    { to: '/search', icon: <Search size={20} />, label: 'Search' },
+    { to: '/history', icon: <Clock size={20} />, label: 'History' },
+  ];
+
   return (
     <>
+      {/* Mobile toggle */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-4 left-4 z-50 md:hidden p-2 rounded-lg bg-white dark:bg-gray-800 shadow-lg text-gray-900 dark:text-white"
       >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
+        {mobileOpen ? <X size={24} /> : <Menu size={24} />}
       </button>
 
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-transform duration-300 z-40 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          }`}
+        className={`fixed left-0 top-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300 z-40
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${collapsed ? 'w-16' : 'w-64'}
+        `}
       >
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-6">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white"
-            >
-              <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          {/* Logo */}
+          <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'gap-2'}`}>
+            <Link to="/" className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 shrink-0 bg-indigo-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">i</span>
               </div>
-              <span>iLearn</span>
+              {!collapsed && (
+                <span className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+                  iLearn
+                </span>
+              )}
             </Link>
           </div>
 
-          <nav className="p-4 pt-0 space-y-2">
-            <Link
-              to="/"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive('/')
-                  ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-            >
-              <Plus size={20} />
-              <span>Add content</span>
-            </Link>
-
-            <Link
-              to="/search"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive('/search')
-                  ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-            >
-              <Search size={20} />
-              <span>Search</span>
-            </Link>
-
-            <Link
-              to="/history"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isActive('/history')
-                  ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-            >
-              <Clock size={20} />
-              <span>History</span>
-            </Link>
+          {/* Nav */}
+          <nav className="p-2 space-y-1">
+            {navItems.map(({ to, icon, label }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setMobileOpen(false)}
+                title={collapsed ? label : undefined}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition
+                  ${collapsed ? 'justify-center' : ''}
+                  ${isActive(to)
+                    ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-200'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+              >
+                <span className="shrink-0">{icon}</span>
+                {!collapsed && <span className="truncate">{label}</span>}
+              </Link>
+            ))}
           </nav>
 
-          <div className="px-4 py-6 border-t border-gray-200 dark:border-gray-800">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-              Help & Tools
-            </h3>
-            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg w-full transition">
-              <HelpCircle size={20} />
-              <span>Quick Guide</span>
+          {/* Help */}
+          <div className={`px-2 py-4 border-t border-gray-200 dark:border-gray-800`}>
+            {!collapsed && (
+              <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 px-2">
+                Help & Tools
+              </h3>
+            )}
+            <button
+              title={collapsed ? 'Quick Guide' : undefined}
+              className={`flex items-center gap-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg w-full transition ${collapsed ? 'justify-center' : ''}`}
+            >
+              <HelpCircle size={20} className="shrink-0" />
+              {!collapsed && <span>Quick Guide</span>}
             </button>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-800 p-4 space-y-3">
+        {/* Bottom section */}
+        <div className="border-t border-gray-200 dark:border-gray-800 p-2 space-y-1">
+          {/* Desktop collapse toggle */}
+          <button
+            onClick={onToggleCollapse}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={`hidden md:flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition w-full ${collapsed ? 'justify-center' : ''}`}
+          >
+            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {!collapsed && <span className="text-sm">Collapse</span>}
+          </button>
+
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            title={collapsed ? (theme === 'light' ? 'Dark mode' : 'Light mode') : undefined}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition ${collapsed ? 'justify-center' : ''}`}
           >
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            <span>{theme === 'light' ? 'Dark' : 'Light'} mode</span>
+            {theme === 'light' ? <Moon size={20} className="shrink-0" /> : <Sun size={20} className="shrink-0" />}
+            {!collapsed && <span>{theme === 'light' ? 'Dark' : 'Light'} mode</span>}
           </button>
 
           <button
             onClick={handleSignOut}
             disabled={isLoading}
-            className="w-full flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
+            title={collapsed ? 'Sign out' : undefined}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50 ${collapsed ? 'justify-center' : ''}`}
           >
-            <LogOut size={20} />
-            <span>{isLoading ? 'Signing out...' : 'Sign out'}</span>
+            <LogOut size={20} className="shrink-0" />
+            {!collapsed && <span>{isLoading ? 'Signing out...' : 'Sign out'}</span>}
           </button>
 
-          <div className="flex items-center gap-3 pt-3 border-t border-gray-200 dark:border-gray-800">
-            <div className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold">
+          {/* User avatar */}
+          <div className={`flex items-center gap-3 pt-2 border-t border-gray-200 dark:border-gray-800 ${collapsed ? 'justify-center' : ''}`}>
+            <div
+              title={collapsed ? (user?.username || 'User') : undefined}
+              className="w-9 h-9 shrink-0 rounded-full bg-indigo-600 text-white flex items-center justify-center font-semibold text-sm"
+            >
               {user?.username?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {user?.username || 'User'}
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {user?.username || 'User'}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </aside>
