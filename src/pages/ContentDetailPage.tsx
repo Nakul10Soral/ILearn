@@ -170,13 +170,33 @@ export function ContentDetailPage() {
     return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const videoUrl = () => {
-    if (content?.videoUrl.includes('https://mega.nz/file'))
-      return content.videoUrl.replace('https://mega.nz/file', 'https://mega.nz/embed');
-    if (content?.videoUrl.includes('https://youtu.be/'))
-      return content.videoUrl.replace('https://youtu.be/', 'https://www.youtube.com/embed/');
-    if (content?.videoUrl.includes('https://www.youtube.com/watch'))
-      return content.videoUrl.replace('https://www.youtube.com/watch?v=', 'https://www.youtube.com/embed/');
+  const getEmbedUrl = (url?: string): string => {
+    if (!url) return '';
+
+    // 🔹 Google Drive
+    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+    if (driveMatch) {
+      return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+    }
+
+    // 🔹 YouTube (short)
+    const ytShortMatch = url.match(/youtu\.be\/([^?]+)/);
+    if (ytShortMatch) {
+      return `https://www.youtube.com/embed/${ytShortMatch[1]}`;
+    }
+
+    // 🔹 YouTube (watch)
+    const ytWatchMatch = url.match(/youtube\.com\/watch\?v=([^&]+)/);
+    if (ytWatchMatch) {
+      return `https://www.youtube.com/embed/${ytWatchMatch[1]}`;
+    }
+
+    // 🔹 Mega
+    const megaMatch = url.match(/mega\.nz\/file\/([^#]+)/);
+    if (megaMatch) {
+      return url.replace('mega.nz/file', 'mega.nz/embed');
+    }
+
     return '';
   };
 
@@ -211,14 +231,14 @@ export function ContentDetailPage() {
             className="flex flex-col overflow-hidden"
             style={{ width: `${leftWidthPct}%`, minWidth: 0 }}
           >
-            <div className="flex mb-2 pb-2 justify-between pr-2">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{content.title}</h1>
+            <div className="flex mb-2 pb-2 justify-between max-w-full pr-2">
+              <h1 className="text-2xl max-w-[500px] truncate font-bold text-gray-900 dark:text-white">{content.title}</h1>
             </div>
 
             {content.videoUrl ? (
               <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900 mb-4 mr-2">
-                {!!videoUrl() ? (
-                  <iframe src={videoUrl()} title={content.title} className="w-full h-full" allowFullScreen />
+                {!!getEmbedUrl(content.videoUrl) ? (
+                  <iframe src={getEmbedUrl(content.videoUrl)} title={content.title} className="w-full h-full" allowFullScreen />
                 ) : (
                   <video ref={videoRef} src={content.videoUrl} title={content.title} className="w-full h-full" controls />
                 )}
@@ -243,15 +263,6 @@ export function ContentDetailPage() {
                     {tab}
                   </button>
                 ))}
-                <button
-                  onClick={() => setShowTimeStamps(!showTimeStamps)}
-                  className={`px-4 py-2 font-medium border-b-2 capitalize transition ${activeTab === 'transcripts'
-                    ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
-                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-                    }`}
-                >
-                  {showTimeStamps ? 'Hide Timestamps' : 'Show Timestamps'}
-                </button>
               </div>
 
               {activeTab === 'transcripts' && (
@@ -372,7 +383,7 @@ export function ContentDetailPage() {
                     <div key={idx} className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start w-full'} max-w-full`}>
                         {msg.role === 'user' ? (
-                          <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-600 text-white text-sm leading-relaxed max-w-[85%]">
+                          <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-600 text-white text-sm leading-relaxed max-w-[95%]">
                             {msg.content}
                           </div>
                         ) : (
@@ -474,13 +485,13 @@ export function ContentDetailPage() {
 
         {/* ── Mobile: full stacked layout ── */}
         <div className="flex lg:hidden flex-col gap-4 max-w-7xl mx-auto overflow-y-auto pb-6">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{content.title}</h1>
+          <h1 className="text-xl font-bold text-gray-900 max-w-[300px] truncate dark:text-white">{content.title}</h1>
 
           {/* Video */}
           {content.videoUrl ? (
             <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-900">
-              {!!videoUrl() ? (
-                <iframe src={videoUrl()} title={content.title} className="w-full h-full" allowFullScreen />
+              {!!getEmbedUrl(content.videoUrl) ? (
+                <iframe src={getEmbedUrl(content.videoUrl)} title={content.title} className="w-full h-full" allowFullScreen />
               ) : (
                 <video ref={videoRef} src={content.videoUrl} title={content.title} className="w-full h-full" controls />
               )}
@@ -491,7 +502,6 @@ export function ContentDetailPage() {
             </div>
           )}
 
-          {/* Transcripts / Chapters tabs */}
           <div>
             <div className="flex gap-4 mb-3 border-b border-gray-200 dark:border-gray-800">
               {(['transcripts', 'chapters'] as const).map(tab => (
@@ -602,7 +612,7 @@ export function ContentDetailPage() {
                   <div key={idx} className={`flex gap-2 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start w-full'} max-w-full`}>
                       {msg.role === 'user' ? (
-                        <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-600 text-white text-sm leading-relaxed max-w-[85%]">
+                        <div className="px-4 py-2.5 rounded-2xl rounded-tr-sm bg-indigo-600 text-white text-sm leading-relaxed max-w-[95%]">
                           {msg.content}
                         </div>
                       ) : (

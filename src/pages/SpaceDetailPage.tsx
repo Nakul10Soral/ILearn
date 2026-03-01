@@ -145,7 +145,7 @@ export function SpaceDetailPage() {
           )}
         </div>
 
-        <div className="mb-8">
+        <div className="mb-8 flex gap-2">
           <button
             onClick={() => setShowAddContent(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition"
@@ -153,6 +153,13 @@ export function SpaceDetailPage() {
             <Plus size={20} />
             Add content
           </button>
+          {/* <button
+            onClick={() => setShowAddContent(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition"
+          >
+            <Plus size={20} />
+            Add Bulk content
+          </button> */}
         </div>
 
         {contents.length > 0 ? (
